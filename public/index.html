@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brightside Dental — AI Chat Demo</title>
+  <meta name="description" content="Demo website of a fictional dental clinic with an AI chat assistant that answers questions and collects bookings 24/7.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦷</text></svg>">
+  <link rel="preload" href="/fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    /* Fonts are self-hosted (no Google requests → GDPR-friendly). */
+    @font-face { font-family: "Barlow Condensed"; font-weight: 600; font-display: swap; src: url(/fonts/barlow-condensed-latin-600-normal.woff2) format("woff2"); }
+    @font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url(/fonts/barlow-condensed-latin-700-normal.woff2) format("woff2"); }
+    @font-face { font-family: "Inter"; font-weight: 100 900; font-display: swap; src: url(/fonts/inter-latin-wght-normal.woff2) format("woff2"); }
+
+    :root {
+      --ink: #111111; --muted: #5b5b5b; --card: #ffffff; --radius: 22px;
+      --bg1: #a9cfe9; --bg2: #2f5f88; --tint1: #eef7fd; --tint2: #cde4f5; --deep: #2a6496;
+      --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+      --body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; font-family: var(--body); color: var(--ink); line-height: 1.55;
+      background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 75%) var(--bg2);
+      min-height: 100vh; -webkit-font-smoothing: antialiased;
+    }
+    img, svg { display: block; }
+    a { color: inherit; }
+    button { font: inherit; }
+    :focus-visible { outline: 3px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 6px var(--deep); }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .display { font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .01em; line-height: .95; }
+
+    /* ---------- floating top bar ---------- */
+    .topbar { position: sticky; top: 0; z-index: 50; padding-top: 14px; }
+    .navbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      background: rgba(255,255,255,.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: 16px; box-shadow: 0 8px 30px rgba(20,50,80,.12); padding: 10px 10px 10px 18px;
+    }
+    .logo { display: flex; align-items: center; gap: 9px; font-family: var(--display); font-weight: 700; font-size: 23px; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; text-decoration: none; }
+    .logo svg { width: 26px; height: 26px; color: var(--deep); }
+    .logo small { font-family: var(--body); font-weight: 500; font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--muted); border-left: 1.5px solid #dde3ea; padding-left: 10px; margin-left: 2px; }
+    .links { display: flex; gap: 4px; }
+    .links a { text-decoration: none; font-size: 15px; font-weight: 500; padding: 9px 14px; border-radius: 10px; transition: background .2s, color .2s; }
+    .links a:hover { background: var(--tint1); color: var(--deep); }
+    .phone { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; font-weight: 600; font-size: 15px; padding: 10px 16px; border-radius: 11px; background: var(--tint1); color: var(--deep); white-space: nowrap; transition: background .2s; }
+    .phone:hover { background: var(--tint2); }
+    .phone svg { width: 18px; height: 18px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; padding: 13px 22px; font-weight: 600; font-size: 16px; text-decoration: none; cursor: pointer; border: 2px solid transparent; transition: transform .15s ease, background .2s, color .2s; white-space: nowrap; }
+    .btn:active { transform: scale(.97); }
+    .btn-dark { background: #1a1a1a; color: #fff; }
+    .btn-dark:hover { background: #000; }
+    .btn-outline { background: #fff; color: #1a1a1a; border-color: #1a1a1a; }
+    .btn-outline:hover { background: #1a1a1a; color: #fff; }
+    .btn-sm { padding: 10px 18px; font-size: 15px; }
+
+    /* ---------- hero ---------- */
+    .hero { margin-top: 28px; }
+    .hero-card { background: linear-gradient(160deg, var(--tint1), var(--tint2)); border-radius: 28px; padding: clamp(28px, 5vw, 64px); display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; overflow: hidden; position: relative; }
+    .demo-tag { display: inline-flex; align-items: center; gap: 8px; background: #fff; border-radius: 999px; padding: 6px 14px 6px 6px; font-size: 13.5px; color: var(--muted); margin-bottom: 22px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+    .demo-tag b { background: var(--deep); color: #fff; border-radius: 999px; padding: 2px 10px; font-size: 12px; letter-spacing: .06em; }
+    .hero h1 { font-size: clamp(52px, 8vw, 104px); margin: 0 0 20px; }
+    .hero h1 span { color: var(--deep); }
+    .hero p.lead { font-size: 18.5px; color: #333; max-width: 520px; margin: 0 0 28px; }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .rating { display: flex; align-items: center; gap: 10px; margin-top: 26px; font-size: 14.5px; color: #333; }
+    .stars { display: inline-flex; gap: 2px; color: #111; }
+    .stars svg { width: 16px; height: 16px; }
+    .hero-art { position: relative; min-height: 460px; display: grid; place-items: center; }
+    .hero-art .tooth { width: min(250px, 58%); filter: drop-shadow(0 30px 40px rgba(0,0,0,.12)); animation: float 6s ease-in-out infinite; }
+    @keyframes float { 50% { transform: translateY(-12px) rotate(-2deg); } }
+    .bubble { position: absolute; background: #fff; border-radius: 16px; padding: 11px 15px; font-size: 14px; box-shadow: 0 12px 30px rgba(0,0,0,.12); max-width: 230px; line-height: 1.4; z-index: 2; }
+    .bubble.q { top: 0; left: 0; border-bottom-left-radius: 4px; }
+    .bubble.a { bottom: 0; right: 0; background: var(--deep); color: #fff; border-bottom-right-radius: 4px; }
+    .bubble small { display: block; font-size: 11.5px; opacity: .65; margin-bottom: 3px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
+
+    /* ---------- sections ---------- */
+    section.block { padding: 72px 0 0; scroll-margin-top: 70px; }
+    .sec-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 26px; color: #fff; }
+    .sec-head h2 { font-size: clamp(40px, 6vw, 64px); margin: 0; }
+    .sec-head p { margin: 8px 0 0; opacity: .9; max-width: 520px; }
+    .carousel-nav { display: flex; gap: 10px; }
+    .nav-btn { width: 52px; height: 52px; border-radius: 10px; border: 0; background: #1a1a1a; color: #fff; cursor: pointer; display: grid; place-items: center; transition: opacity .2s; }
+    .nav-btn:disabled { opacity: .35; cursor: default; }
+
+    .cards { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 3 * 22px) / 3.25); gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 6px; }
+    .cards::-webkit-scrollbar { display: none; }
+    .card { background: var(--card); border-radius: var(--radius); overflow: hidden; scroll-snap-align: start; display: flex; flex-direction: column; }
+    .card-art { background: linear-gradient(180deg, var(--tint2), var(--tint1)); height: 230px; display: grid; place-items: center; border-radius: 0 0 var(--radius) var(--radius); }
+    .card-art svg { width: 120px; height: 120px; color: var(--deep); transition: transform .4s ease; }
+    .card:hover .card-art svg { transform: scale(1.08) rotate(-4deg); }
+    .card-body { padding: 20px 20px 22px; display: flex; flex-direction: column; flex: 1; }
+    .card h3 { font-size: 24px; margin: 0 0 6px; }
+    .card p { margin: 0 0 14px; color: var(--muted); font-size: 14px; line-height: 1.5; flex: 1; }
+    .card .meta { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #333; margin-bottom: 18px; }
+    .card .buy { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .price { font-family: var(--display); font-weight: 700; font-size: 32px; line-height: 1; }
+    .price small { font-family: var(--body); font-size: 13px; font-weight: 500; color: var(--muted); margin-right: 3px; }
+    .dots { display: flex; gap: 8px; margin-top: 22px; }
+    .dots span { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.45); transition: background .2s, transform .2s; }
+    .dots span.on { background: #fff; transform: scale(1.3); }
+
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .review { background: #fff; border-radius: var(--radius); padding: 26px; display: flex; flex-direction: column; gap: 14px; }
+    .review q { font-size: 16.5px; quotes: "“" "”"; }
+    .who { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--muted); }
+    .who b { color: var(--ink); display: block; font-size: 15px; }
+    .initial { width: 40px; height: 40px; border-radius: 50%; background: var(--tint2); color: var(--deep); display: grid; place-items: center; font-weight: 700; }
+
+    .visit { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+    .tile { background: #fff; border-radius: 28px; padding: clamp(24px, 4vw, 40px); }
+    .tile h3 { font-size: 34px; margin: 0 0 18px; }
+    .facts { display: grid; gap: 16px; }
+    .fact { display: flex; gap: 14px; }
+    .fact .ic { width: 42px; height: 42px; border-radius: 12px; background: var(--tint1); color: var(--deep); display: grid; place-items: center; flex: none; }
+    .fact .ic svg { width: 22px; height: 22px; }
+    .fact b { display: block; }
+    .fact span { color: var(--muted); font-size: 14.5px; }
+    .tile.cta { background: linear-gradient(160deg, var(--deep), #111); color: #fff; display: flex; flex-direction: column; justify-content: space-between; gap: 24px; position: relative; overflow: hidden; }
+    .tile.cta h3 { font-size: clamp(40px, 5vw, 58px); }
+    .tile.cta p { opacity: .85; max-width: 380px; margin: 0; }
+    .tile.cta .btn { align-self: flex-start; background: #fff; color: #111; }
+    .moon { position: absolute; right: -40px; top: -40px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.35), rgba(255,255,255,.05)); }
+
+    footer { color: rgba(255,255,255,.85); font-size: 14px; padding: 64px 0 120px; }
+    footer .row { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,.25); padding-top: 24px; }
+
+    /* ---------- cursor trail ---------- */
+    .trail { position: fixed; left: 0; top: 0; pointer-events: none; z-index: 40; width: 22px; height: 22px; margin: -11px 0 0 -11px; }
+
+    /* ---------- responsive ---------- */
+    @media (max-width: 960px) {
+      .hero-card { grid-template-columns: 1fr; }
+      .hero-art { min-height: 300px; }
+      .cards { grid-auto-columns: calc((100% - 22px) / 2.15); }
+      .grid3 { grid-template-columns: 1fr; }
+      .visit { grid-template-columns: 1fr; }
+      .logo small { display: none; }
+    }
+    @media (max-width: 760px) {
+      .links { display: none; }
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 0 14px; }
+      .topbar { padding-top: 10px; }
+      .navbar { padding: 8px 8px 8px 14px; }
+      .logo { font-size: 20px; }
+      .phone { padding: 10px 12px; }
+      .phone .num { display: none; }
+      .demo-tag .arrow { display: none; }
+      .hero { margin-top: 18px; }
+      .hero-card { border-radius: 22px; }
+      .hero p.lead { font-size: 16.5px; }
+      .hero-actions .btn { flex: 1; }
+      .bubble { font-size: 13px; max-width: 190px; }
+      .cards { grid-auto-columns: 84%; gap: 14px; }
+      .card-art { height: 190px; }
+      .carousel-nav { display: none; }
+      section.block { padding-top: 56px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-art .tooth { animation: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Reusable icons -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></symbol>
+    <symbol id="tooth" viewBox="0 0 64 64"><path fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="M20 7c-7 0-12 6-11 14 .6 6 3.5 9 4.5 15 1.2 8 2 21 7.5 21 4.5 0 4-13 11-13s6.5 13 11 13c5.5 0 6.3-13 7.5-21 1-6 3.9-9 4.5-15C56 13 51 7 44 7c-5 0-7 3-12 3s-7-3-12-3z"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="wrap">
+      <nav class="navbar" aria-label="Main">
+        <a class="logo" href="#top" aria-label="Brightside Dental — back to top">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#tooth"/></svg>Brightside<small>Family dentistry</small>
+        </a>
+        <div class="links">
+          <a href="#services">Services</a>
+          <a href="#reviews">Reviews</a>
+          <a href="#visit">Visit us</a>
+        </div>
+        <a class="phone" href="tel:+15550142290" aria-label="Call +1 (555) 014-2290">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>
+          <span class="num">+1 (555) 014-2290</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <div class="wrap hero">
+      <div class="hero-card">
+        <div>
+          <div class="demo-tag"><b>DEMO</b> Fictional clinic · try the AI chat<span class="arrow" aria-hidden="true"> ↘</span></div>
+          <h1 class="display">Smile brighter.<br><span>Book in seconds.</span></h1>
+          <p class="lead">Gentle family dentistry in Maplewood. Questions at 2 a.m.? Our AI assistant answers instantly — prices, hours, insurance — and books your visit.</p>
+          <div class="hero-actions">
+            <button class="btn btn-dark" type="button" data-open-chat>Ask our assistant</button>
+            <a class="btn btn-outline" href="#services">See prices</a>
+          </div>
+          <div class="rating">
+            <span class="stars" aria-hidden="true"><svg><use href="#star"/></svg><svg><use href="#star"/></svg><svg><use href="#star"/></svg><svg><use href="#star"/></svg><svg><use href="#star"/></svg></span>
+            <span><b>4.9</b> · 312 patient reviews</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="bubble q"><small>Visitor · 2:14 am</small>Do you have anything today? My tooth really hurts 😣</div>
+          <svg class="tooth" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#eef0f3"/></linearGradient>
+            </defs>
+            <path fill="url(#tg)" stroke="#1a1a1a" stroke-width="4" stroke-linejoin="round" d="M62 24c-22 0-38 19-35 44 2 18 11 28 14 46 4 25 6 66 23 66 14 0 13-40 36-40s22 40 36 40c17 0 19-41 23-66 3-18 12-28 14-46 3-25-13-44-35-44-16 0-22 9-38 9s-22-9-38-9z"/>
+            <path fill="none" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round" d="M52 56c4-10 12-14 20-14"/>
+            <circle cx="80" cy="96" r="5" fill="#1a1a1a"/><circle cx="120" cy="96" r="5" fill="#1a1a1a"/>
+            <path d="M88 114c8 8 16 8 24 0" fill="none" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"/>
+            <g fill="var(--deep)"><path d="M168 30l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/><path d="M28 140l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path d="M176 120l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z"/></g>
+          </svg>
+          <div class="bubble a"><small>AI assistant · instantly</small>So sorry! We have same-day emergency visits ($140). Leave your number and we'll call you first thing.</div>
+        </div>
+      </div>
+    </div>
+
+    <section class="block" id="services">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <h2 class="display">Services</h2>
+            <p>Clear prices, no surprises. Tap “Book” and the assistant takes it from there.</p>
+          </div>
+          <div class="carousel-nav">
+            <button class="nav-btn" type="button" data-dir="-1" aria-label="Previous services"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <button class="nav-btn" type="button" data-dir="1" aria-label="Next services"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
+          </div>
+        </div>
+        <div class="cards" id="cards"></div>
+        <div class="dots" id="dots" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <section class="block" id="reviews">
+      <div class="wrap">
+        <div class="sec-head"><div><h2 class="display">Patients say</h2></div></div>
+        <div class="grid3">
+          <figure class="review" style="margin:0">
+            <span class="stars" aria-label="5 out of 5 stars"><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg></span>
+            <q>I messaged the chat at midnight with a cracked tooth. Got a call at 8:05 and was seen by 10.</q>
+            <figcaption class="who"><span class="initial">M</span><span><b>Maya R.</b>Emergency visit</span></figcaption>
+          </figure>
+          <figure class="review" style="margin:0">
+            <span class="stars" aria-label="5 out of 5 stars"><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg></span>
+            <q>Asked about insurance in Spanish and got a clear answer right away. Booking took one minute.</q>
+            <figcaption class="who"><span class="initial">D</span><span><b>Diego L.</b>Cleaning</span></figcaption>
+          </figure>
+          <figure class="review" style="margin:0">
+            <span class="stars" aria-label="5 out of 5 stars"><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg><svg width="16" height="16"><use href="#star"/></svg></span>
+            <q>Gentle with my kids and no waiting on hold. The whitening results are amazing.</q>
+            <figcaption class="who"><span class="initial">S</span><span><b>Sarah K.</b>Whitening</span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="visit">
+      <div class="wrap visit">
+        <div class="tile">
+          <h3 class="display">Visit us</h3>
+          <div class="facts">
+            <div class="fact"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span><div><b>214 Harbor Street, Maplewood</b><span>Free parking behind the building</span></div></div>
+            <div class="fact"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div><b>Mon–Fri 8:00–18:00<br>Sat 9:00–14:00</b><span>Sunday closed · emergencies same day</span></div></div>
+            <div class="fact"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><div><b>Most insurance plans accepted</b><span>Monthly payment plans over $500</span></div></div>
+            <div class="fact"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></span><div><b><a href="tel:+15550142290">+1 (555) 014-2290</a></b><span>We speak English, Spanish &amp; German</span></div></div>
+          </div>
+        </div>
+        <div class="tile cta">
+          <div class="moon" aria-hidden="true"></div>
+          <h3 class="display">Questions<br>at 2 a.m.?</h3>
+          <p>Our AI assistant knows our prices, hours and insurance — and passes your booking straight to the front desk. 24/7, in your language.</p>
+          <button class="btn" type="button" data-open-chat>Start a chat</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap row">
+      <span>© Brightside Dental — fictional demo business. Names, reviews and prices are made up.</span>
+      <span>AI chat widget demo</span>
+    </div>
+  </footer>
+
+  <script src="/widget.js" defer
+    data-title="Brightside Dental"
+    data-subtitle="AI assistant · replies instantly"
+    data-color="#2a6496"
+    data-greeting="Hi! 👋 I'm the Brightside Dental assistant. Ask me about prices, opening hours or booking a visit."
+    data-suggestions="Prices|Opening hours|Book a visit|I have a toothache"></script>
+  <script>
+  (() => {
+    // ---------- services ----------
+    const icons = {
+      check: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#tooth"/><circle cx="46" cy="44" r="10" fill="#fff"/><path d="M53 51l6 6"/></svg>',
+      clean: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 50l26-26"/><rect x="34" y="8" width="20" height="14" rx="3" transform="rotate(45 44 15)"/><path d="M14 18v6M11 21h6M48 42v8M44 46h8"/></svg>',
+      white: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#tooth"/><path d="M52 6l2.5 6 6 2.5-6 2.5L52 23l-2.5-6-6-2.5 6-2.5z" fill="currentColor"/></svg>',
+      sos: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="34" r="22"/><path d="M32 22v14M32 42v2"/><path d="M24 6h16"/></svg>',
+      kids: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="22"/><circle cx="24" cy="28" r="2" fill="currentColor"/><circle cx="40" cy="28" r="2" fill="currentColor"/><path d="M23 39c5 6 13 6 18 0"/></svg>',
+      fill: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#tooth"/><circle cx="32" cy="24" r="6" fill="currentColor"/></svg>',
+    };
+    const services = [
+      { icon: "clean", title: "Professional cleaning", text: "About 45 minutes. Gentle, thorough, and you leave feeling brand new.", rating: "4.9", count: 128, price: "120", ask: "I'd like to book a professional cleaning." },
+      { icon: "check", title: "Check-up + X-rays", text: "Full exam with digital low-dose X-rays and a clear treatment plan.", rating: "4.8", count: 96, price: "95", ask: "I'd like to book a check-up with X-rays." },
+      { icon: "white", title: "Teeth whitening", text: "In-office whitening with visible results in a single visit.", rating: "4.9", count: 54, price: "390", ask: "I'm interested in teeth whitening. Can I book?" },
+      { icon: "sos", title: "Emergency visit", text: "Toothache or broken tooth? Same-day appointments when it hurts.", rating: "5.0", count: 41, price: "140", ask: "I need an emergency visit today." },
+      { icon: "kids", title: "Children's check-up", text: "Friendly check-ups for kids under 14. No tears, just stickers.", rating: "4.9", count: 37, price: "60", ask: "I'd like to book a check-up for my child." },
+      { icon: "fill", title: "Fillings", text: "Tooth-colored fillings that blend in naturally.", rating: "4.8", count: 63, price: "150", from: true, ask: "I think I need a filling. Can I book a visit?" },
+    ];
+    const starRow = '<span class="stars" aria-hidden="true">' + '<svg width="15" height="15"><use href="#star"/></svg>'.repeat(5) + "</span>";
+    const cards = document.getElementById("cards");
+    cards.innerHTML = services.map((s) => `
+      <article class="card">
+        <div class="card-art" aria-hidden="true">${icons[s.icon]}</div>
+        <div class="card-body">
+          <h3 class="display">${s.title}</h3>
+          <p>${s.text}</p>
+          <div class="meta">${starRow}<span>${s.rating} (${s.count})</span></div>
+          <div class="buy">
+            <span class="price">${s.from ? "<small>from</small>" : ""}$${s.price}</span>
+            <button class="btn btn-dark btn-sm" type="button" data-ask="${s.ask}">Book</button>
+          </div>
+        </div>
+      </article>`).join("");
+
+    const dots = document.getElementById("dots");
+    dots.innerHTML = services.map(() => "<span></span>").join("");
+    const navBtns = document.querySelectorAll(".nav-btn");
+    function updateCarousel() {
+      const max = cards.scrollWidth - cards.clientWidth;
+      const step = cards.firstElementChild.getBoundingClientRect().width + 22;
+      const idx = Math.round(cards.scrollLeft / step);
+      [...dots.children].forEach((d, i) => d.classList.toggle("on", i === Math.min(idx, services.length - 1)));
+      navBtns[0].disabled = cards.scrollLeft <= 2;
+      navBtns[1].disabled = cards.scrollLeft >= max - 2;
+    }
+    navBtns.forEach((b) => b.addEventListener("click", () => {
+      const step = cards.firstElementChild.getBoundingClientRect().width + 22;
+      cards.scrollBy({ left: step * Number(b.dataset.dir), behavior: "smooth" });
+    }));
+    cards.addEventListener("scroll", updateCarousel, { passive: true });
+    addEventListener("resize", updateCarousel);
+    updateCarousel();
+
+    // ---------- chat buttons ----------
+    const withChat = (fn) => {
+      if (window.AIChatWidget) fn(window.AIChatWidget);
+      else addEventListener("aichat:ready", () => fn(window.AIChatWidget), { once: true });
+    };
+    document.addEventListener("click", (e) => {
+      const ask = e.target.closest("[data-ask]");
+      if (ask) return withChat((w) => w.ask(ask.dataset.ask));
+      if (e.target.closest("[data-open-chat]")) withChat((w) => w.open());
+    });
+
+    // ---------- demo autoplay for screen recordings (?autoplay) ----------
+    if (new URLSearchParams(location.search).has("autoplay")) {
+      const s = document.createElement("script");
+      s.src = "/autoplay.js";
+      document.body.appendChild(s);
+    }
+
+    // ---------- cursor trail (mouse only, respects reduced motion) ----------
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const finePointer = matchMedia("(pointer: fine)").matches;
+    if (!reduce && finePointer) {
+      const flake = { colors: ["#6fa8d6", "#a9d0ee", "#2a6496"], svg: (c) => `<svg viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M12 2l-2.5 2.5M12 2l2.5 2.5M12 22l-2.5-2.5M12 22l2.5-2.5"/></svg>` };
+      let last = { x: 0, y: 0, t: 0 }, live = 0;
+      addEventListener("pointermove", (e) => {
+        if (e.pointerType !== "mouse") return;
+        const now = performance.now();
+        if (now - last.t < 45 || Math.hypot(e.clientX - last.x, e.clientY - last.y) < 18 || live > 28) return;
+        last = { x: e.clientX, y: e.clientY, t: now };
+        const set = flake;
+        const el = document.createElement("div");
+        el.className = "trail";
+        el.innerHTML = set.svg(set.colors[Math.floor(Math.random() * set.colors.length)]);
+        document.body.appendChild(el);
+        live++;
+        const size = 0.8 + Math.random() * 0.7, rot = Math.random() * 360, dx = (Math.random() - 0.5) * 50, dy = 30 + Math.random() * 40;
+        el.animate([
+          { transform: `translate(${e.clientX}px, ${e.clientY}px) scale(${size * 0.4}) rotate(${rot}deg)`, opacity: 0 },
+          { transform: `translate(${e.clientX + dx * 0.3}px, ${e.clientY + dy * 0.2}px) scale(${size}) rotate(${rot + 40}deg)`, opacity: 0.95, offset: 0.2 },
+          { transform: `translate(${e.clientX + dx}px, ${e.clientY + dy}px) scale(${size * 0.8}) rotate(${rot + 140}deg)`, opacity: 0 },
+        ], { duration: 1100 + Math.random() * 400, easing: "cubic-bezier(.2,.6,.3,1)" }).onfinish = () => { el.remove(); live--; };
+      }, { passive: true });
+    }
+  })();
+  </script>
+</body>
+</html>

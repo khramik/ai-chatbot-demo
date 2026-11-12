@@ -1,0 +1,17 @@
+{
+  "name": "ai-chatbot-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI chat widget for small-business websites (demo)",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0"
+  }
+}
